@@ -1,0 +1,24 @@
+[package]
+name = "market-and-mastery"
+version = "0.1.0"
+edition = "2024"
+authors = ["Mikhail Kurenkov <kurenkovrobotics@gmail.com>"]
+description = "A Rust project for market and mastery"
+readme = "README.md"
+license = "MIT"
+
+[dependencies]
+# Add your dependencies here
+# For example:
+# tokio = { version = "1.28", features = ["full"] }
+# serde = { version = "1.0", features = ["derive"] }
+# serde_json = "1.0"
+
+[dev-dependencies]
+# Add your development dependencies here
+# For example:
+# criterion = "0.5"
+
+[[bin]]
+name = "market-and-mastery"
+path = "src/main.rs" 

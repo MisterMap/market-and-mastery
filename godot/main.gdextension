@@ -1,0 +1,14 @@
+[configuration]
+entry_symbol = "gdext_rust_init"
+compatibility_minimum = 4.1
+reloadable = true
+
+[libraries]
+linux.debug.x86_64 =     "res://../target/debug/libmarket_and_mastery.so"
+linux.release.x86_64 =   "res://../target/release/libmarket_and_mastery.so"
+windows.debug.x86_64 =   "res://../target/debug/market_and_mastery.dll"
+windows.release.x86_64 = "res://../target/release/market_and_mastery.dll"
+macos.debug =            "res://../target/debug/libmarket_and_mastery.dylib"
+macos.release =          "res://../target/release/libmarket_and_mastery.dylib"
+macos.debug.arm64 =      "res://../target/debug/libmarket_and_mastery.dylib"
+macos.release.arm64 =    "res://../target/release/libmarket_and_mastery.dylib"

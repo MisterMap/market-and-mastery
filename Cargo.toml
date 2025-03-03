@@ -1,13 +1,15 @@
 [package]
 name = "market-and-mastery"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 authors = ["Mikhail Kurenkov <kurenkovrobotics@gmail.com>"]
 description = "A Rust project for market and mastery"
 readme = "README.md"
 license = "MIT"
 
 [dependencies]
+godot = "0.2.4"
+bonsai-bt = "*"
 # Add your dependencies here
 # For example:
 # tokio = { version = "1.28", features = ["full"] }
@@ -19,6 +21,12 @@ license = "MIT"
 # For example:
 # criterion = "0.5"
 
+[lib]
+name = "market_and_mastery"
+path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]
+
 [[bin]]
-name = "market-and-mastery"
+name = "market_and_mastery_bin"
 path = "src/main.rs" 
+

@@ -1,3 +1,5 @@
+use market_and_mastery::hello;
+
 fn main() {
-    println!("Hello, Market and Mastery!");
-} 
+    hello();
+}

@@ -22,6 +22,7 @@ scale = Vector2(0.25, 0.25)
 texture = ExtResource("1_0exvt")
 
 [node name="Agent" type="Agent" parent="."]
-position = Vector2(98, 254)
+z_index = 1
+position = Vector2(583, 405)
 scale = Vector2(0.125, 0.125)
 texture = SubResource("CompressedTexture2D_l53qb")

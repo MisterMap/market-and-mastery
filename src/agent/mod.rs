@@ -1,4 +1,4 @@
 // Export the agent module
 mod agent;
-mod move_behaviour;
+pub mod move_behaviour;
 mod build_behaviour;

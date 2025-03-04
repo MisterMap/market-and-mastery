@@ -1,7 +1,7 @@
 use godot::prelude::*;
 
 // Declare the agent module
-mod agent;
+pub mod agent;
 
 struct MyExtension;
 

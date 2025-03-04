@@ -17,9 +17,7 @@ bonsai-bt = "*"
 # serde_json = "1.0"
 
 [dev-dependencies]
-# Add your development dependencies here
-# For example:
-# criterion = "0.5"
+approx = "0.5"
 
 [lib]
 name = "market_and_mastery"

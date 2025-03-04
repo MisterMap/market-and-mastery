@@ -1,6 +1,6 @@
 use godot::prelude::*;
 
-#[derive(PartialEq, Eq, Clone, Copy)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum Result {
     Success,
     Running,

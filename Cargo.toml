@@ -10,6 +10,7 @@ license = "MIT"
 [dependencies]
 godot = "0.2.4"
 bonsai-bt = "*"
+rand = "0.8"
 # Add your dependencies here
 # For example:
 # tokio = { version = "1.28", features = ["full"] }

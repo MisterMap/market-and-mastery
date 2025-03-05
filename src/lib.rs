@@ -3,6 +3,8 @@ use godot::classes::Engine;
 use godot::classes::Object;
 // Declare the agent module
 pub mod agent;
+// Declare the building module
+pub mod building;
 
 use agent::free_space_manager::FreeSpaceManager;
 

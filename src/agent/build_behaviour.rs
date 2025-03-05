@@ -2,10 +2,10 @@ use godot::prelude::*;
 use godot::classes::{CompressedTexture2D, ResourceLoader, Sprite2D, Node, Shader, ShaderMaterial};
 
 use super::move_behaviour::Result;
+use crate::building::BuildingConfig;
 
 pub struct BuildBehaviour {
     building_house: Option<Gd<Sprite2D>>,
-    building_offset: Vector2,
     building_progress: f32,
     building_duration: f32,
 }
@@ -14,24 +14,23 @@ impl BuildBehaviour {
     pub fn new() -> Self {
         Self {
             building_house: None,
-            building_offset: Vector2::new(50.0, -50.0),
             building_progress: 0.0,
             building_duration: 2.0,
         }
     }
 
-    pub fn start_building(&mut self, mut parent: Gd<Node>, position: Vector2) {
+    pub fn start_building(&mut self, mut parent: Gd<Node>, position: Vector2, config: BuildingConfig) {
         let mut sprite = Sprite2D::new_alloc();
-        let path = "res://.godot/imported/farmer_tent.png-b0a81620f2308971a68ea826e6d01872.ctex";
+        let path = config.sprite_path;
         
         let texture = ResourceLoader::singleton()
-            .load(path)
+            .load(&path)
             .expect("Failed to load texture")
             .cast::<CompressedTexture2D>();
         
         sprite.set_texture(&texture);
-        sprite.set_scale(Vector2::new(0.25, 0.25));
-        sprite.set_position(position + self.building_offset);
+        sprite.set_scale(config.scale);
+        sprite.set_position(position);
         sprite.set_z_index(0);
         
         let shader_code = "

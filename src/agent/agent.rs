@@ -1,6 +1,8 @@
 use godot::prelude::*;
 use godot::classes::{Sprite2D, ISprite2D};
 
+use crate::building::home_building_config;
+
 use super::free_space_manager::FreeSpaceManager;
 use super::move_behaviour::{MoveBehaviour, Result};
 use super::build_behaviour::BuildBehaviour;
@@ -80,7 +82,7 @@ impl Agent {
     fn start_home_building(&mut self) {
         godot_print!("Agent {} Starting build", self.base().get_name());
         let parent = self.base().get_parent().expect("Parent not found");
-        self.build_behaviour.start_building(parent, self.build_home_position);
+        self.build_behaviour.start_building(parent, self.build_home_position, home_building_config());
         self.state = State::HomeBuilding;
     }
 }

@@ -11,7 +11,6 @@ pub struct FreeSpaceManager {
     base: Base<Object>,
     cell_x_size: f32,
     cell_y_size: f32,
-    max_distance: i32,
     distance_step: i32,
     occupied_positions: HashSet<(i32, i32)>,
 }
@@ -23,7 +22,6 @@ impl IObject for FreeSpaceManager {
             base,
             cell_x_size: 200.0,
             cell_y_size: 200.0,
-            max_distance: 3,
             distance_step: 3,
             occupied_positions: HashSet::new(),
         }
@@ -43,15 +41,16 @@ impl FreeSpaceManager {
         self.occupied_positions.insert((cell_x, cell_y));
     }
 
-    pub fn find_random_free_position_near(&self, target: Vector2) -> Vector2 {
+    pub fn find_random_free_position_near(&self, target: Vector2, radius: f32) -> Vector2 {
         let (target_cell_x, target_cell_y) = self.cell_id_from_position(target);
-        
+        let reference_distance = (radius / self.cell_x_size).ceil() as i32;
+
         // Create a list of positions to check in expanding square pattern
         let mut available_cells = Vec::new();
         let mut distance_min = 0;
-        let mut distance_max = self.max_distance;
+        let mut distance_max = reference_distance;
         while available_cells.len() == 0 {
-            available_cells = self.expand_available_cells(target_cell_x, target_cell_y, distance_min, distance_max);
+            available_cells = self.expand_available_cells(target_cell_x, target_cell_y, distance_min, distance_max, reference_distance);
             distance_min = distance_max + 1;
             distance_max = distance_max + self.distance_step;
         }
@@ -75,7 +74,7 @@ impl FreeSpaceManager {
         )
     }
 
-    fn expand_available_cells(&self, target_cell_x: i32, target_cell_y: i32, distance_min: i32, distance_max: i32) -> Vec<(i32, i32, f32)> {
+    fn expand_available_cells(&self, target_cell_x: i32, target_cell_y: i32, distance_min: i32, distance_max: i32, reference_distance: i32) -> Vec<(i32, i32, f32)> {
         let mut check_cells = Vec::new();
 
         for cell_x in distance_min..=distance_max {
@@ -105,7 +104,7 @@ impl FreeSpaceManager {
         check_cells
             .iter()
             .filter(|(cell_x, cell_y)| !self.occupied_positions.contains(&(target_cell_x + cell_x, target_cell_y + cell_y)))
-            .map(|(cell_x, cell_y)| (target_cell_x + cell_x, target_cell_y + cell_y, ((-(cell_x.pow(2) + cell_y.pow(2)) as f32) / (self.max_distance as f32).powf(2.0)).exp()))
+            .map(|(cell_x, cell_y)| (target_cell_x + cell_x, target_cell_y + cell_y, ((-(cell_x.pow(2) + cell_y.pow(2)) as f32) / (reference_distance as f32).powf(2.0)).exp()))
             .collect()
     }
 }

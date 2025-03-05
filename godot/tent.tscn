@@ -1,7 +1,6 @@
-[gd_scene load_steps=4 format=3 uid="uid://dwtm526q0bii6"]
+[gd_scene load_steps=3 format=3 uid="uid://dwtm526q0bii6"]
 
 [ext_resource type="Texture2D" uid="uid://d2280wugbbd4g" path="res://sprites/farmer_tent.png" id="1_0exvt"]
-[ext_resource type="Texture2D" uid="uid://ciixgtt5664oa" path="res://sprites/field.png" id="2_lbny8"]
 
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_l53qb"]
 load_path = "res://.godot/imported/farmer_full.png-56f584d3ef263035cd8a48f5b6334bad.ctex"
@@ -25,34 +24,30 @@ texture = ExtResource("1_0exvt")
 
 [node name="Agent" type="Agent" parent="."]
 z_index = 1
-position = Vector2(1074, 696)
+position = Vector2(2150, 1160)
 scale = Vector2(0.125, 0.125)
 texture = SubResource("CompressedTexture2D_l53qb")
 
 [node name="Agent2" type="Agent" parent="."]
 z_index = 1
-position = Vector2(1074, 696)
+position = Vector2(2150, 1160)
 scale = Vector2(0.125, 0.125)
 texture = SubResource("CompressedTexture2D_l53qb")
 
 [node name="Agent3" type="Agent" parent="."]
 z_index = 1
-position = Vector2(1074, 696)
+position = Vector2(2150, 1160)
 scale = Vector2(0.125, 0.125)
 texture = SubResource("CompressedTexture2D_l53qb")
 
 [node name="Agent4" type="Agent" parent="."]
 z_index = 1
-position = Vector2(1074, 696)
+position = Vector2(2150, 1160)
 scale = Vector2(0.125, 0.125)
 texture = SubResource("CompressedTexture2D_l53qb")
 
 [node name="Agent5" type="Agent" parent="."]
 z_index = 1
-position = Vector2(1076, 694)
+position = Vector2(2152, 1158)
 scale = Vector2(0.125, 0.125)
 texture = SubResource("CompressedTexture2D_l53qb")
-
-[node name="Field" type="Sprite2D" parent="."]
-position = Vector2(-504, 826)
-texture = ExtResource("2_lbny8")

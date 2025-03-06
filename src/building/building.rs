@@ -1,3 +1,4 @@
+use godot::obj::WithBaseField;
 use godot::prelude::*;
 use godot::classes::{CompressedTexture2D, ResourceLoader, Sprite2D, ISprite2D, Shader, ShaderMaterial};
 use crate::building::BuildingConfig;
@@ -17,13 +18,10 @@ impl ISprite2D for Building {
     }
 }
 
-#[godot_api]
-impl Building {
-    pub fn from_config_and_position(config: BuildingConfig, position: Vector2) -> Gd<Self> {
+pub trait IBuilding: ISprite2D + WithBaseField {
+    fn from_config_and_position(config: BuildingConfig, position: Vector2) -> Gd<Self> {
         let mut building = Gd::from_init_fn(|base| {
-            Building {
-                base: base,
-            }
+            Self::init(base)
         });
         let path = config.sprite_path;
         
@@ -59,10 +57,24 @@ impl Building {
         building
     }
 
-    pub fn process(&mut self, progress: f32) {
+    fn set_new_config(&mut self, config: BuildingConfig) {
+        let path = config.sprite_path;
+        
+        let texture = ResourceLoader::singleton()
+            .load(&path)
+            .expect("Failed to load texture")
+            .cast::<CompressedTexture2D>();
+        self.base_mut().set_texture(&texture);
+        self.base_mut().set_scale(config.scale);
+    }
+
+    fn build(&mut self, progress: f32) {
         if let Some(material) = self.base().get_material() {
             let mut shader_material = material.cast::<ShaderMaterial>();
             shader_material.set_shader_parameter("progress", &Variant::from(progress));
         }
     }
 }
+
+impl IBuilding for Building {}
+

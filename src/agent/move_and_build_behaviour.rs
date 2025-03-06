@@ -2,7 +2,7 @@ use godot::prelude::*;
 
 use super::move_behaviour::{MoveBehaviour, Result};
 use super::build_behaviour::BuildBehaviour;
-use crate::building::Building;
+use crate::building::IBuilding;
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 enum State {
@@ -11,16 +11,16 @@ enum State {
     BuildingState,
 }
 
-pub struct MoveAndBuildBehaviour {
+pub struct MoveAndBuildBehaviour<T: IBuilding> {
     state: State,
     move_behaviour: MoveBehaviour,
-    build_behaviour: BuildBehaviour,
-    building: Option<Gd<Building>>,
+    build_behaviour: BuildBehaviour<T>,
+    building: Option<Gd<T>>,
     build_offset: Vector2,
     agent_name: String,
 }
 
-impl MoveAndBuildBehaviour {
+impl<T: IBuilding> MoveAndBuildBehaviour<T> {
     pub fn new() -> Self {
         Self {
             state: State::Idle,
@@ -36,7 +36,7 @@ impl MoveAndBuildBehaviour {
         self.agent_name = agent_name;
     }
 
-    pub fn start(&mut self, building: Gd<Building>, current_position: Vector2) {
+    pub fn start(&mut self, building: Gd<T>, current_position: Vector2) {
         godot_print!("Agent {}: Starting move to build", self.agent_name);
         let build_position = building.bind().base().get_position();
         self.building = Some(building);

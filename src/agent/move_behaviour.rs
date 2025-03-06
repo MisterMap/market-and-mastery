@@ -6,6 +6,7 @@ pub enum Result {
     Running,
 }
 
+#[derive(Clone)]
 pub struct MoveBehaviour {
     speed: f32,
     moving_time: f32,

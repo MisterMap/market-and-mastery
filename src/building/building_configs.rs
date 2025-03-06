@@ -14,10 +14,4 @@ pub fn home_building_config() -> BuildingConfig {
     }
 }
 
-pub fn field_building_config() -> BuildingConfig {
-    BuildingConfig {
-        sprite_path: "res://.godot/imported/field.png-e3ee637cd0bc190899026182c03fbba0.ctex".into(),
-        scale: Vector2::new(0.15, 0.15),
-        building_name: "Field".into(),
-    }
-}
+

@@ -4,7 +4,7 @@ use godot::{builtin::Vector2, classes::{Sprite2D, ISprite2D}};
 use super::{IBuilding, BuildingConfig};
 
 #[derive(PartialEq, Eq, Clone, Copy)]
-enum FieldState {
+pub enum FieldState {
     Growing,
     Grown,
 }
@@ -33,7 +33,7 @@ pub struct Field {
     base: Base<Sprite2D>,
     grow_progress: f32,
     grow_duration: f32,
-    state: FieldState,
+    pub state: FieldState,
 }
 
 #[godot_api]

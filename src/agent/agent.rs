@@ -1,8 +1,8 @@
 use godot::prelude::*;
 use godot::classes::{Sprite2D, ISprite2D};
 
-use crate::agent::MoveAndBuildBehaviour;
-use crate::building::{home_building_config, Building, Field, IBuilding};
+use crate::agent::move_and_build_behaviour::MoveAndBuildBehaviour;
+use crate::building::{home_building_config, Building, Field, FieldState, IBuilding};
 
 use super::free_space_manager::FreeSpaceManager;
 use super::move_behaviour::Result;
@@ -12,7 +12,7 @@ enum State {
     Idle,
     HomeBuilding,
     FieldBuilding,
-    Finished,
+    FieldRemoving,
 }
 
 #[derive(GodotClass)]
@@ -22,10 +22,12 @@ pub struct Agent {
     base: Base<Sprite2D>,
     home_build_behaviour: MoveAndBuildBehaviour<Building>,
     field_build_behaviour: MoveAndBuildBehaviour<Field>,
-    field_count: u32,
-    max_field_count: u32,
+    fields: Vec<Gd<Field>>,
+    home: Option<Gd<Building>>,
+    max_field_count: usize,
     home_building_radius: f32,
     field_building_radius: f32,
+    removing_field: Option<Gd<Field>>,
 }
 
 #[godot_api]
@@ -37,37 +39,62 @@ impl ISprite2D for Agent {
             base,
             home_build_behaviour: MoveAndBuildBehaviour::new(),
             field_build_behaviour: MoveAndBuildBehaviour::new(),
-            field_count: 0,
+            fields: Vec::new(),
+            home: None,
             max_field_count: 3,
             home_building_radius: 600.0,
             field_building_radius: 100.0,
+            removing_field: None,
         }
     }
 
     fn physics_process(&mut self, delta: f64) {
-        if self.state == State::Idle {
-            self.home_build_behaviour.set_agent_name(self.base().get_name().to_string());
-            self.start_home_building();
-        }
-        if self.state == State::HomeBuilding {
-            let result = self.move_and_build_home(delta);
-            if result == Result::Running {
-                return;
-            }
-            if result == Result::Success {
-                godot_print!("Agent {} Build complete", self.base().get_name());
-                self.start_field_building();
-            }
-        }
-        if self.state == State::FieldBuilding {
-            let result = self.move_and_build_field(delta);
-            if result == Result::Running {
-                return;
-            }
-            if result == Result::Success {
-                godot_print!("Agent {} Build complete", self.base().get_name());
-                self.field_count += 1;
-                self.start_field_building();
+        loop {
+            match self.state {
+                State::Idle => {
+                    let agent_name = self.base().get_name().to_string();
+                    self.home_build_behaviour.set_agent_name(agent_name.clone());
+                    self.field_build_behaviour.set_agent_name(agent_name);
+                    if self.home.is_none() {
+                        self.start_home_building();
+                    } else if self.fields.len() < self.max_field_count {
+                        self.start_field_building();
+                    } else if self.is_any_field_completed() {
+                        self.start_field_removing()
+                    } else {
+                        return;
+                    }
+                }
+                State::HomeBuilding => {
+                    let result = self.move_and_build_home(delta);
+                    if result == Result::Running {
+                        return;
+                    }
+                    if result == Result::Success {
+                        godot_print!("Agent {} Home build complete", self.base().get_name());
+                        self.state = State::Idle;
+                    }
+                }
+                State::FieldBuilding => {
+                    let result = self.move_and_build_field(delta);
+                    if result == Result::Running {
+                        return;
+                    }
+                    if result == Result::Success {
+                        godot_print!("Agent {} Field build complete", self.base().get_name());
+                        self.state = State::Idle;
+                    }
+                }
+                State::FieldRemoving => {
+                    let result = self.move_and_remove_field(delta);
+                    if result == Result::Running {
+                        return;
+                    }
+                    if result == Result::Success {
+                        godot_print!("Agent {} Field removing complete", self.base().get_name());
+                        self.finish_field_removing();
+                    }
+                }
             }
         }
     }
@@ -77,9 +104,10 @@ impl Agent {
     fn start_home_building(&mut self) {
         godot_print!("Agent {} Starting home build", self.base().get_name());
         let build_position = self.calculate_free_space_position(self.home_building_radius);
-        let building = Building::from_config_and_position(home_building_config(), build_position);
-        self.add_building_to_parent(&building);
-        self.home_build_behaviour.start(building, self.base().get_position());
+        let home = Building::from_config_and_position(home_building_config(), build_position);
+        self.add_building_to_parent(&home);
+        self.home_build_behaviour.start_construction(home.clone(), self.base().get_position());
+        self.home = Some(home);
         self.state = State::HomeBuilding;
     }
 
@@ -92,14 +120,12 @@ impl Agent {
     }
 
     fn start_field_building(&mut self) {
-        if self.field_count >= self.max_field_count {
-            self.state = State::Finished;
-            return;
-        }
+        godot_print!("Agent {} Starting field build", self.base().get_name());
         let build_position = self.calculate_free_space_position(self.field_building_radius);
-        let building = Field::from_position(build_position);
-        self.add_building_to_parent(&building);
-        self.field_build_behaviour.start(building, self.base().get_position());
+        let field = Field::from_position(build_position);
+        self.add_building_to_parent(&field);
+        self.field_build_behaviour.start_construction(field.clone(), self.base().get_position());
+        self.fields.push(field);
         self.state = State::FieldBuilding;
     }
 
@@ -122,5 +148,36 @@ impl Agent {
         let node = building.clone().upcast::<Node>();
         let mut parent = self.base().get_parent().expect("Parent not found");
         parent.add_child(&node);
+    }
+
+    fn is_any_field_completed(&self) -> bool {
+        self.fields.iter().any(|field| field.bind().state == FieldState::Grown)
+    }
+
+    fn start_field_removing(&mut self) {
+        godot_print!("Agent {} Starting field removing", self.base().get_name());
+        let field = self.fields.iter().find(|field| field.bind().state == FieldState::Grown).unwrap();
+        self.removing_field = Some(field.clone());
+        self.field_build_behaviour.start_deconstruction(field.clone(), self.base().get_position());
+        self.state = State::FieldRemoving;
+    }
+
+    fn move_and_remove_field(&mut self, delta: f64) -> Result {
+        let (result, next_position) = self.field_build_behaviour.build(delta);
+        if let Some(next_position) = next_position {
+            self.base_mut().set_position(next_position);
+        }
+        result
+    }
+
+    fn finish_field_removing(&mut self) {
+        godot_print!("Agent {} Field removing complete", self.base().get_name());
+        let mut free_space_manager = FreeSpaceManager::singleton();
+        let field_instance_id = self.removing_field.as_ref().unwrap().instance_id();
+        self.fields.retain(|field| field.instance_id() != field_instance_id);
+        free_space_manager.bind_mut().remove_occupied_position(self.removing_field.as_ref().unwrap().bind().base().get_position());
+        self.removing_field.as_mut().unwrap().bind_mut().base_mut().queue_free();
+        self.removing_field = None;
+        self.state = State::Idle;
     }
 }

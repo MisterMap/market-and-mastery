@@ -41,6 +41,11 @@ impl FreeSpaceManager {
         self.occupied_positions.insert((cell_x, cell_y));
     }
 
+    pub fn remove_occupied_position(&mut self, position: Vector2) {
+        let (cell_x, cell_y) = self.cell_id_from_position(position);
+        self.occupied_positions.remove(&(cell_x, cell_y));
+    }
+
     pub fn find_random_free_position_near(&self, target: Vector2, radius: f32) -> Vector2 {
         let (target_cell_x, target_cell_y) = self.cell_id_from_position(target);
         let reference_distance = (radius / self.cell_x_size).ceil() as i32;

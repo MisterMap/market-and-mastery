@@ -5,6 +5,7 @@ use super::{IBuilding, BuildingConfig};
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 pub enum FieldState {
+    Seeding,
     Growing,
     Grown,
 }
@@ -43,7 +44,7 @@ impl ISprite2D for Field {
             base,
             grow_progress: 0.0,
             grow_duration: 10.0,
-            state: FieldState::Growing,
+            state: FieldState::Seeding,
         }
     }
 
@@ -57,7 +58,11 @@ impl ISprite2D for Field {
     }
 }
 
-impl IBuilding for Field {}
+impl IBuilding for Field {
+    fn set_completed(&mut self) {
+        self.state = FieldState::Growing;
+    }
+}
 
 impl Field {
     pub fn from_position(position: Vector2) -> Gd<Self> {

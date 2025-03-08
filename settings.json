@@ -1,0 +1,7 @@
+{
+    "rust-analyzer.rustfmt.extraArgs": [
+        "--config",
+        "max_width=120",
+        "use_small_heuristics = Max"
+    ]
+} 

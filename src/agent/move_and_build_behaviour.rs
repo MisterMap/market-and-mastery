@@ -102,6 +102,7 @@ impl<T: IBuilding> MoveAndBuildBehaviour<T> {
 
         if self.is_construction {
             if self.building_progress >= self.building_duration {
+                self.building.as_mut().unwrap().bind_mut().set_completed();
                 return Result::Success;
             }
         } else {

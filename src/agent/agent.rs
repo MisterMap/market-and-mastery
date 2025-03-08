@@ -1,18 +1,19 @@
+use godot::classes::{ISprite2D, Sprite2D};
 use godot::prelude::*;
-use godot::classes::{Sprite2D, ISprite2D};
 
 use crate::agent::move_and_build_behaviour::MoveAndBuildBehaviour;
 use crate::building::{home_building_config, Building, Field, FieldState, IBuilding};
 
 use super::free_space_manager::FreeSpaceManager;
-use super::move_behaviour::Result;
-
+use super::move_behaviour::{MoveBehaviour, Result};
+use crate::resources::inventory::{Inventory, InventoryResource};
 #[derive(PartialEq, Eq, Clone, Copy)]
 enum State {
     Idle,
     HomeBuilding,
     FieldBuilding,
     FieldRemoving,
+    ReturningToHome,
 }
 
 #[derive(GodotClass)]
@@ -22,12 +23,14 @@ pub struct Agent {
     base: Base<Sprite2D>,
     home_build_behaviour: MoveAndBuildBehaviour<Building>,
     field_build_behaviour: MoveAndBuildBehaviour<Field>,
+    move_behaviour: MoveBehaviour,
     fields: Vec<Gd<Field>>,
     home: Option<Gd<Building>>,
     max_field_count: usize,
     home_building_radius: f32,
     field_building_radius: f32,
     removing_field: Option<Gd<Field>>,
+    inventory: Inventory,
 }
 
 #[godot_api]
@@ -39,12 +42,14 @@ impl ISprite2D for Agent {
             base,
             home_build_behaviour: MoveAndBuildBehaviour::new(),
             field_build_behaviour: MoveAndBuildBehaviour::new(),
+            move_behaviour: MoveBehaviour::new(),
             fields: Vec::new(),
             home: None,
             max_field_count: 3,
             home_building_radius: 600.0,
             field_building_radius: 100.0,
             removing_field: None,
+            inventory: Inventory::new(),
         }
     }
 
@@ -57,10 +62,10 @@ impl ISprite2D for Agent {
                     self.field_build_behaviour.set_agent_name(agent_name);
                     if self.home.is_none() {
                         self.start_home_building();
+                    } else if self.is_any_field_completed() {
+                        self.start_field_removing();
                     } else if self.fields.len() < self.max_field_count {
                         self.start_field_building();
-                    } else if self.is_any_field_completed() {
-                        self.start_field_removing()
                     } else {
                         return;
                     }
@@ -93,7 +98,15 @@ impl ISprite2D for Agent {
                     if result == Result::Success {
                         godot_print!("Agent {} Field removing complete", self.base().get_name());
                         self.finish_field_removing();
+                        self.start_returning_to_home();
                     }
+                }
+                State::ReturningToHome => {
+                    let result = self.move_to_home(delta);
+                    if result == Result::Running {
+                        return;
+                    }
+                    self.finish_returning_to_home();
                 }
             }
         }
@@ -139,7 +152,8 @@ impl Agent {
 
     fn calculate_free_space_position(&self, radius: f32) -> Vector2 {
         let mut free_space_manager = FreeSpaceManager::singleton();
-        let build_position = free_space_manager.bind().find_random_free_position_near(self.base().get_position(), radius);
+        let build_position =
+            free_space_manager.bind().find_random_free_position_near(self.base().get_position(), radius);
         free_space_manager.bind_mut().add_occupied_position(build_position);
         build_position
     }
@@ -175,9 +189,35 @@ impl Agent {
         let mut free_space_manager = FreeSpaceManager::singleton();
         let field_instance_id = self.removing_field.as_ref().unwrap().instance_id();
         self.fields.retain(|field| field.instance_id() != field_instance_id);
-        free_space_manager.bind_mut().remove_occupied_position(self.removing_field.as_ref().unwrap().bind().base().get_position());
+        free_space_manager
+            .bind_mut()
+            .remove_occupied_position(self.removing_field.as_ref().unwrap().bind().base().get_position());
         self.removing_field.as_mut().unwrap().bind_mut().base_mut().queue_free();
         self.removing_field = None;
+        self.inventory.add(InventoryResource::Wheat, 1);
+        self.state = State::Idle;
+    }
+
+    fn start_returning_to_home(&mut self) {
+        if self.home.is_none() {
+            self.state = State::Idle;
+            return;
+        }
+        godot_print!("Agent {} Starting returning to home", self.base().get_name());
+        self.move_behaviour
+            .start_moving(self.base().get_position(), self.home.as_ref().unwrap().bind().base().get_position());
+        self.state = State::ReturningToHome;
+    }
+
+    fn move_to_home(&mut self, delta: f64) -> Result {
+        let (result, next_position) = self.move_behaviour.move_agent(delta);
+        self.base_mut().set_position(next_position);
+        result
+    }
+
+    fn finish_returning_to_home(&mut self) {
+        godot_print!("Agent {} Returning to home complete", self.base().get_name());
+        self.home.as_mut().unwrap().bind_mut().inventory.move_full_inventory_from(&mut self.inventory);
         self.state = State::Idle;
     }
 }

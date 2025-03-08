@@ -5,6 +5,7 @@ use godot::classes::Object;
 pub mod agent;
 // Declare the building module
 pub mod building;
+pub mod resources;
 
 use agent::free_space_manager::FreeSpaceManager;
 

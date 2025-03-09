@@ -62,13 +62,12 @@ impl IBuilding for Field {
     fn set_completed(&mut self) {
         self.state = FieldState::Growing;
     }
+    fn from_position(position: Vector2) -> Gd<Self> {
+        IBuilding::from_config_and_position(empty_field_building_config(), position)
+    }
 }
 
 impl Field {
-    pub fn from_position(position: Vector2) -> Gd<Self> {
-        IBuilding::from_config_and_position(empty_field_building_config(), position)
-    }
-
     pub fn grow(&mut self) {
         godot_print!("Field growing");
         self.set_new_config(field_building_config());

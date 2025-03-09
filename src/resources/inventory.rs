@@ -1,5 +1,7 @@
 use std::{collections::HashMap, fmt::Display};
 
+use godot::prelude::GodotClass;
+
 #[derive(Eq, Hash, PartialEq, Copy, Clone, Debug)]
 pub enum InventoryResource {
     Wheat,
@@ -13,6 +15,8 @@ impl Display for InventoryResource {
     }
 }
 
+#[derive(GodotClass)]
+#[class(init)]
 pub struct Inventory {
     pub items: HashMap<InventoryResource, i32>,
 }

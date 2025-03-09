@@ -4,6 +4,8 @@ use godot::classes::{CompressedTexture2D, ISprite2D, Label, ResourceLoader, Shad
 use godot::obj::WithBaseField;
 use godot::prelude::*;
 
+use super::home_building_config;
+
 #[derive(PartialEq, Eq, Clone, Copy)]
 pub enum BuildingState {
     Building,
@@ -54,6 +56,9 @@ impl ISprite2D for Building {
 }
 
 pub trait IBuilding: ISprite2D + WithBaseField {
+    fn from_position(position: Vector2) -> Gd<Self> {
+        Self::from_config_and_position(home_building_config(), position)
+    }
     fn from_config_and_position(config: BuildingConfig, position: Vector2) -> Gd<Self> {
         let mut building = Gd::from_init_fn(|base| Self::init(base));
         let path = config.sprite_path;

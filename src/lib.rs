@@ -1,13 +1,12 @@
 use godot::prelude::*;
 use godot::classes::Engine;
 use godot::classes::Object;
-// Declare the agent module
 pub mod agent;
-// Declare the building module
+pub mod behaviour;
 pub mod building;
 pub mod resources;
 
-use agent::free_space_manager::FreeSpaceManager;
+use behaviour::free_space_manager::FreeSpaceManager;
 
 struct MyExtension;
 
